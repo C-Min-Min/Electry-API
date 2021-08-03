@@ -75,8 +75,22 @@
             $this->db->close();
         }
 
-        function devices(){
-            $sql = 'SELECT * FROM Devices'; 
+        function api_call(){
+            if(isset($_POST["func"])){
+                $func = $_POST["func"];
+                if($func == "dev"){
+                    $this->devices();
+                } else if ($func == "stats"){
+                    $this->stats();
+                } else {
+                    echo "WRONG FUNC";
+                }
+            } else {
+                echo "NOT GIVEN FUNC";
+            }
+        }
+
+        function api_json_return($sql){
             $stmt = mysqli_query($this->db, $sql);
 
             $resultArray = array();
@@ -90,12 +104,64 @@
             echo json_encode($resultArray, JSON_PRETTY_PRINT);
         }
 
-        function stats(){
+        function devices(){
+            $sql = 'SELECT * FROM Devices'; 
+            $this->api_json_return($sql);
+        }
 
+        function stats(){
+            echo "Stats Work";
+
+            if (   
+                isset($_POST["dev_id"]) && 
+                isset($_POST["time"]) &&
+                isset($_POST["status"])
+            ){
+                
+                // Param -> Var
+                $dev_id = $_POST["dev_id"];
+                $time_radius = $_POST["time"];
+                $status = $_POST["status"];
+                
+
+
+            } else if (
+                !isset($_POST["dev_id"]) && 
+                isset($_POST["time"]) &&
+                !isset($_POST["status"])
+            ){
+                $time_radius = array();
+                $time_radius = $_POST["time"];
+
+                $sql = 'SELECT `dev_name`, `image_link`, `time`, `power`
+                        FROM Devices
+                        INNER JOIN Stats
+                        ON Devices.dev_id = Stats.dev_id
+                        WHERE `time` > '.$time_radius[0].' AND `time` < '.$time_radius[1].'
+                        ORDER BY `time` DESC;';
+                                
+                $this->api_json_return($sql);
+            } else if (
+                isset($_POST["dev_id"]) && 
+                isset($_POST["time"]) &&
+                !isset($_POST["status"])
+            ){
+                $dev_id = $_POST["dev_id"];
+                $time_radius = $_POST["time"];
+
+                $sql = 'SELECT `dev_name`, `image_link`, `time`, `power`
+                FROM Devices
+                INNER JOIN Stats
+                ON Devices.dev_id = Stats.dev_id
+                WHERE `time` > '.$time_radius[0].' AND `time` < '.$time_radius[1].' AND dev_id = '.$dev_id.'
+                ORDER BY `time` DESC;';
+                
+                $this->api_json_return($sql);
+            }
         }
     }
 
     $api = new RedeemAPI;
-    $api->devices();
+    $api->api_call();
 
 ?>
