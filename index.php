@@ -82,6 +82,8 @@
                     $this->devices();
                 } else if ($func == "stats"){
                     $this->stats();
+                } else if ($func == "update"){
+                    $this->update();
                 } else {
                     echo "WRONG FUNC";
                 }
@@ -157,6 +159,39 @@
                 ORDER BY `time` DESC;';
                 
                 $this->api_json_return($sql);
+            }
+        }
+
+        function update(){
+            if(isset($_POST["dev_id"]) && isset($_POST["new"]) && isset($_POST["value"])){
+                $dev_id = $_POST["dev_id"];
+                $new = $_POST["new"];
+                $val = $_POST["value"];
+
+                $sql = 'UPDATE Devices ';
+
+                if($new == "name"){
+                    $sql = $sql.'SET `dev_name` = "'.$val.'"';
+                } else if ($new == "desc"){
+                    $sql = $sql.'SET `desc` = "'.$val.'"';
+                } else if ($new == "fav"){
+                    $sql = $sql.'SET `dev_fav` = '.$val;
+                } else if ($new == "icon"){
+                    $sql = $sql.'SET `image_link` = "'.$val.'"';
+                } else {
+                    return;
+                }
+
+                $sql = $sql.' WHERE `dev_id` = '.$dev_id.';';
+                
+                if (mysqli_query($this->db, $sql)) {
+                    echo "Record updated successfully";
+                } else {
+                    echo "Error updating record: " . mysqli_error($this->db);
+                }
+
+            } else {
+                echo "NOT ENOUGH ARGS";
             }
         }
     }
